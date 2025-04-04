@@ -29,7 +29,8 @@
     { "name": "eslint", "description": "ESLint configuration" },
     { "name": "babel", "description": "Babel configuration" },
     { "name": "webpack", "description": "Webpack configuration" },
-    { "name": "collaboration", "description": "Management collaboration resource" }
+    { "name": "collaboration", "description": "Management collaboration resource" },
+    { "name": "docker", "description": "Docker configuration" }
   ],
   "types": [
     { "value": "feat", "name": "✨ feat:     Add a new feature", "emoji": "✨" },
