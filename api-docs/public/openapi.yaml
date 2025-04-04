@@ -42,11 +42,6 @@ paths:
     put:
       tags:
         - Report
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: integer
       requestBody:
         content:
           application/json:
@@ -79,8 +74,8 @@ paths:
                 kas:
                   type: number
       responses:
-        200:
-          description: OK
+        201:
+          description: CREATED
           content:
   /tabel/{id}:
     # endpoint PUT /tabel

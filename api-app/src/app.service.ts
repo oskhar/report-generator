@@ -29,7 +29,7 @@ export class AppService {
   }
 
   createTabel(tabel: TabelDto) {
-    tabel.id = this.data['tabel'][this.data['tabel'].length]['id'] + 1;
+    tabel.id = this.data['tabel'][this.data['tabel'].length - 1]['id'] + 1;
     this.data['tabel'] = [...this.data['tabel'], tabel];
   }
 
@@ -37,5 +37,9 @@ export class AppService {
     this.data['tabel'] = this.data['tabel'].map((row) =>
       row.id == id ? tabel : row,
     );
+  }
+
+  deleteTabel(id: number) {
+    this.data['tabel'] = this.data['tabel'].filter((row) => row.id != id);
   }
 }

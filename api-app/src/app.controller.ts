@@ -1,8 +1,15 @@
-import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import { ZodPipe } from './pipes/zod.pipe';
 import { UpdateDataSchema, UpdateDataDto } from './dto/update-data.dto';
-import { z } from 'zod';
 import { TabelSchema, TabelDto } from './dto/tabel.dto';
 
 @Controller()
@@ -22,5 +29,18 @@ export class AppController {
   @Post('tabel')
   createTabel(@Body(new ZodPipe(TabelSchema)) tabel: TabelDto) {
     return this.appService.createTabel(tabel);
+  }
+
+  @Put('tabel/:id')
+  updateTabel(
+    @Param('id') id: string,
+    @Body(new ZodPipe(TabelSchema)) tabel: TabelDto,
+  ) {
+    return this.appService.updateTabel(+id, tabel);
+  }
+
+  @Delete('tabel/:id')
+  deleteTabel(@Param('id') id: string) {
+    this.appService.deleteTabel(+id);
   }
 }
