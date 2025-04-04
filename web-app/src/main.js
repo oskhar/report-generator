@@ -1,25 +1,17 @@
-import { createApp } from "vue";
-import "./index.css";
+import { createApp } from 'vue'
+import App from '@/App.vue'
+import { registerPlugins } from '@core/utils/plugins'
 
-// Optional third-party libraries
-import $ from "jquery";
-import _ from "lodash";
-import noUiSlider from "nouislider";
-import "datatables.net";
-import "dropzone/dist/dropzone-min.js";
+// Styles
+import '@core/scss/template/index.scss'
+import '@layouts/styles/index.scss'
 
-window._ = _;
-window.$ = $;
-window.jQuery = $;
-window.DataTable = $.fn.dataTable;
-window.noUiSlider = noUiSlider;
+// Create vue app
+const app = createApp(App)
 
-import "flyonui/flyonui";
-import App from "./App.vue";
-import router from "./router";
 
-const app = createApp(App);
+// Register plugins
+registerPlugins(app)
 
-app.use(router);
-
-app.mount("#app");
+// Mount vue app
+app.mount('#app')
