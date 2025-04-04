@@ -20,7 +20,7 @@ export class AppController {
   }
 
   @Post('tabel')
-  createTabel(@Body(new ZodPipe(z.array(TabelSchema))) tabel: TabelDto[]) {
+  createTabel(@Body(new ZodPipe(TabelSchema)) tabel: TabelDto) {
     return this.appService.createTabel(tabel);
   }
 }

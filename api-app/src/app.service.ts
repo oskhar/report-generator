@@ -28,11 +28,14 @@ export class AppService {
     this.data['keterangan'] = updateDataDto['keterangan'];
   }
 
-  createTabel(tabel: TabelDto[]) {
-    for (const row of tabel) this.data['tabel'] = [...this.data['tabel'], row];
+  createTabel(tabel: TabelDto) {
+    tabel.id = this.data['tabel'][this.data['tabel'].length]['id'] + 1;
+    this.data['tabel'] = [...this.data['tabel'], tabel];
   }
 
-  updateTabel(index: number, tabel: TabelDto) {
-    this.data['tabel'][index] = tabel;
+  updateTabel(id: number, tabel: TabelDto) {
+    this.data['tabel'] = this.data['tabel'].map((row) =>
+      row.id == id ? tabel : row,
+    );
   }
 }

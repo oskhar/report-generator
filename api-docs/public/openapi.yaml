@@ -1,0 +1,71 @@
+openapi: "3.0.2"
+
+info:
+  title: Laporan Dana
+  description: Manage API endpoints.
+  version: 0.0.1
+
+servers:
+  - url: http://localhost:3000
+
+paths:
+  # Write your own API endpoints
+  /:
+    # endpoint GET /
+    get:
+      tags:
+        - Report
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  judul:
+                    type: string
+                  tabel:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        nama:
+                          type: string
+                        dansos:
+                          type: number
+                        kas:
+                          type: number
+    # endpoint PUT /
+    put:
+      tags:
+        - Report
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                judul:
+                  type: string
+                  example: "Domain-Driven Design: Tackling Complexity in the Heart of Software"
+                penulis:
+                  type: string
+                  example: "Eric Evans"
+      responses:
+        200:
+          description: OK
+          content:
+    delete:
+      tags:
+        - Buku
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
