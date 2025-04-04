@@ -25,6 +25,8 @@ paths:
                 properties:
                   judul:
                     type: string
+                  keterangan:
+                    type: string
                   tabel:
                     type: array
                     items:
@@ -53,17 +55,63 @@ paths:
               properties:
                 judul:
                   type: string
-                  example: "Domain-Driven Design: Tackling Complexity in the Heart of Software"
-                penulis:
+                keterangan:
                   type: string
-                  example: "Eric Evans"
       responses:
         200:
           description: OK
           content:
+  /tabel:
+    # endpoint POST /tabel
+    post:
+      tags:
+        - Report
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nama:
+                  type: string
+                dansos:
+                  type: number
+                kas:
+                  type: number
+      responses:
+        200:
+          description: OK
+          content:
+  /tabel/{id}:
+    # endpoint PUT /tabel
+    put:
+      tags:
+        - Report
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nama:
+                  type: string
+                dansos:
+                  type: number
+                kas:
+                  type: number
+      responses:
+        200:
+          description: OK
+          content:
+    # endpoint DELETE /tabel
     delete:
       tags:
-        - Buku
+        - Report
       parameters:
         - name: id
           in: path
