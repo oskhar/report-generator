@@ -279,6 +279,7 @@ const saveRow = () => {
     >
       Cetak PDF
     </VBtn>
+    <div class="pa-16 my-16"></div>
   </VContainer>
 </template>
 
@@ -287,7 +288,7 @@ const saveRow = () => {
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 10px;
-  min-height: 8rem;
+  min-height: 12rem;
   font-family: sans-serif;
   font-size: 16px;
 }

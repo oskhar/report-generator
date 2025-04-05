@@ -7,7 +7,7 @@ import { TabelDto } from './dto/tabel.dto';
 
 @Injectable()
 export class AppService {
-  private data: DataDto = {
+  public data: DataDto = {
     judul: '',
     tabel: [],
     keterangan: '',
