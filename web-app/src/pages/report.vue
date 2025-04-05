@@ -266,11 +266,13 @@ const saveRow = async () => {
         </VCardTitle>
         <VCardText>
           <VTextField
+            color="info"
             v-model="currentRow.nama"
             label="Nama"
             class="mt-5"
           />
           <VTextField
+            color="info"
             :model-value="formatCurrency(currentRow.dansos)"
             @update:model-value="newValue => (currentRow.dansos = parseCurrency(newValue))"
             label="Dansos"
@@ -278,6 +280,7 @@ const saveRow = async () => {
           />
 
           <VTextField
+            color="info"
             :model-value="formatCurrency(currentRow.kas)"
             @update:model-value="newValue => (currentRow.kas = parseCurrency(newValue))"
             label="Kas"
@@ -342,8 +345,9 @@ const saveRow = async () => {
     </VDialog>
 
     <VCard class="pa-4">
-      <VCardTitle class="text-primary">Judul</VCardTitle>
+      <VCardTitle class="text-info">Judul</VCardTitle>
       <VTextField
+        color="info"
         id="judul"
         v-model="data.judul"
         placeholder="Tambahkan Judul"
@@ -355,7 +359,7 @@ const saveRow = async () => {
       variant="outlined"
       class="mt-3 pa-4"
     >
-      <VCardTitle class="text-primary">Laporan Dana</VCardTitle>
+      <VCardTitle class="text-info">Laporan Dana</VCardTitle>
       <VRow class="my-1">
         <VCol>
           <VBtn
@@ -391,7 +395,7 @@ const saveRow = async () => {
     </VCard>
 
     <VCard class="pa-4 mt-3">
-      <VCardTitle class="text-primary">Keterangan</VCardTitle>
+      <VCardTitle class="text-info">Keterangan</VCardTitle>
       <div class="toolbar">
         <VBtn
           color="info"
@@ -435,7 +439,7 @@ const saveRow = async () => {
 
       <!-- Tombol Import JSON -->
       <VBtn
-        color="primary"
+        color="info"
         prepend-icon="ri-upload-2-fill"
         @click="fileInput.click()"
       >
