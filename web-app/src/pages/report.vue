@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onBeforeUnmount, onMounted, watch } from 'vue'
+import { ref, onBeforeUnmount, onMounted, watch, computed } from 'vue'
 import { Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import axios from 'axios'
@@ -20,6 +20,13 @@ const currentRow = ref({ id: 0, nama: '', dansos: '', kas: '' })
 const editingIndex = ref(-1)
 const rowToDelete = ref({ id: null, index: -1 })
 const fileInput = ref(null)
+const searchQuery = ref('')
+
+const filteredRows = computed(() => {
+  if (!searchQuery.value) return data.value.tabel
+  const query = searchQuery.value.toLowerCase().trim()
+  return data.value.tabel.filter(row => row.nama.toLowerCase().includes(query))
+})
 
 // Fungsi untuk memformat angka ke format mata uang Indonesia
 const formatCurrency = value => {
@@ -277,7 +284,11 @@ const saveRow = async () => {
             @update:model-value="newValue => (currentRow.dansos = parseCurrency(newValue))"
             label="Dansos"
             class="mt-4"
-          />
+          >
+            <template #prepend-inner>
+              <span class="mr-2">Rp</span>
+            </template></VTextField
+          >
 
           <VTextField
             color="info"
@@ -285,7 +296,11 @@ const saveRow = async () => {
             @update:model-value="newValue => (currentRow.kas = parseCurrency(newValue))"
             label="Kas"
             class="mt-4"
-          />
+          >
+            <template #prepend-inner>
+              <span class="mr-2">Rp</span>
+            </template></VTextField
+          >
         </VCardText>
         <VCardActions>
           <VBtn
@@ -355,8 +370,28 @@ const saveRow = async () => {
       class="mt-3 pa-2"
     >
       <VCardTitle class="text-info">Laporan Dana</VCardTitle>
-      <VRow class="my-1">
-        <VCol>
+      <VRow class="my-1 align-center">
+        <VCol
+          cols="12"
+          sm="8"
+          md="9"
+        >
+          <VTextField
+            v-model="searchQuery"
+            label="Cari nama"
+            color="info"
+            placeholder="Ketik untuk mencari..."
+            clearable
+            density="compact"
+            variant="outlined"
+            prepend-inner-icon="ri-search-line"
+          />
+        </VCol>
+        <VCol
+          cols="12"
+          sm="4"
+          md="3"
+        >
           <VBtn
             block
             color="success"
@@ -379,8 +414,8 @@ const saveRow = async () => {
         </VRow>
       </VCard>
       <VCard
-        @click="openEditModal(row, index)"
-        v-for="(row, index) in data.tabel"
+        @click="openEditModal(row)"
+        v-for="(row, index) in filteredRows"
         :key="index"
         class="pa-2 py-4 mt-3"
       >
