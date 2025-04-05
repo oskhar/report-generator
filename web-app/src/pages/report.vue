@@ -289,7 +289,6 @@ const saveRow = async () => {
         </VCardText>
         <VCardActions>
           <VBtn
-            class="px-5"
             variant="elevated"
             v-if="modalType === 'edit'"
             color="error"
@@ -300,14 +299,12 @@ const saveRow = async () => {
           </VBtn>
           <VSpacer />
           <VBtn
-            class="px-5"
             variant="outlined"
             color="secondary"
             @click="showModal = false"
             >Batal</VBtn
           >
           <VBtn
-            class="px-5"
             variant="elevated"
             color="success"
             @click="saveRow"
@@ -330,13 +327,11 @@ const saveRow = async () => {
           <VSpacer />
           <VBtn
             color="secondary"
-            class="px-5"
             @click="showDeleteConfirmation = false"
             >Batal</VBtn
           >
           <VBtn
             color="error"
-            class="px-5"
             @click="handleDelete"
             >Hapus</VBtn
           >
@@ -377,12 +372,16 @@ const saveRow = async () => {
         :key="index"
         class="pa-2 mt-3"
       >
-        <VRow>
-          <VCol class="ml-2">{{ index + 1 }}</VCol>
-          <VCol>{{ row.nama }}</VCol>
-          <VCol>{{ formatCurrency(row.dansos) }}</VCol>
-          <VCol>{{ formatCurrency(row.kas) }}</VCol>
-          <VCol style="max-width: 4rem">
+        <VRow style="display: grid; grid-template-columns: auto 1fr 1fr 1fr auto; align-items: center">
+          <VCol class="text-left">{{ index + 1 }}.</VCol>
+          <VCol
+            class="text-left"
+            style="overflow-wrap: break-word"
+            >{{ row.nama }}</VCol
+          >
+          <VCol class="text-left">{{ formatCurrency(row.dansos) }}</VCol>
+          <VCol class="text-left">{{ formatCurrency(row.kas) }}</VCol>
+          <VCol>
             <VBtn
               color="info"
               @click="openEditModal(row, index)"

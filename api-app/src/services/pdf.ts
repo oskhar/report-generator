@@ -20,6 +20,7 @@ export class PdfService {
 
       // Header Document
       doc.font('Helvetica-Bold').fontSize(18);
+      doc.moveDown(2);
       this.renderCenteredText(doc, data.judul, doc.page.margins.top);
       doc.moveDown(2);
 
