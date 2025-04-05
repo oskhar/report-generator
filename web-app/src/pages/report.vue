@@ -428,18 +428,10 @@ const saveRow = async () => {
       />
     </VCard>
 
-    <div class="d-flex gap-3 mt-3">
-      <VBtn
-        color="success"
-        prepend-icon="ri-download-2-fill"
-        @click="generatePDF"
-      >
-        Cetak PDF
-      </VBtn>
-
+    <div class="d-flex gap-3 mt-3 justify-end">
       <!-- Tombol Import JSON -->
       <VBtn
-        color="info"
+        color="success"
         prepend-icon="ri-upload-2-fill"
         @click="fileInput.click()"
       >
@@ -454,6 +446,13 @@ const saveRow = async () => {
         hidden
         @change="handleFileImport"
       />
+      <VBtn
+        color="info"
+        prepend-icon="ri-download-2-fill"
+        @click="generatePDF"
+      >
+        Cetak PDF
+      </VBtn>
     </div>
   </VContainer>
 </template>
