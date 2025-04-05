@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onBeforeUnmount, onMounted, watch } from 'vue' // <-- Tambahkan watch
+import { ref, onBeforeUnmount, onMounted, watch } from 'vue'
 import { Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import axios from 'axios'
@@ -11,19 +11,15 @@ const data = ref({
   keterangan: '',
 })
 
-const isInitialLoad = ref(true) // <-- Tambahkan flag inisialisasi
-const deleteMode = ref(false)
+const isInitialLoad = ref(true)
 const showModal = ref(false)
+const showDeleteConfirmation = ref(false)
 const modalType = ref('add')
-const currentRow = ref({
-  id: 0,
-  nama: '',
-  dansos: '',
-  kas: '',
-})
+const currentRow = ref({ id: 0, nama: '', dansos: '', kas: '' })
 const editingIndex = ref(-1)
+const rowToDelete = ref({ id: null, index: -1 })
 
-// Fungsi debounce untuk mengontrol frekuensi request
+// Fungsi debounce untuk autosave
 const debounce = (func, wait) => {
   let timeout
   return function (...args) {
@@ -33,7 +29,6 @@ const debounce = (func, wait) => {
   }
 }
 
-// Fungsi save data dengan debounce 500ms
 const saveData = debounce(() => {
   axios
     .put('http://localhost:3000/', {
@@ -44,13 +39,10 @@ const saveData = debounce(() => {
     .catch(error => console.error('Gagal menyimpan perubahan:', error))
 }, 500)
 
-// Watcher untuk perubahan judul dan keterangan
 watch(
   () => [data.value.judul, data.value.keterangan],
   () => {
-    if (!isInitialLoad.value) {
-      saveData()
-    }
+    if (!isInitialLoad.value) saveData()
   },
 )
 
@@ -59,7 +51,7 @@ onMounted(async () => {
     const response = await axios.get('http://localhost:3000')
     data.value = response.data
     editor.commands.setContent(data.value.keterangan)
-    isInitialLoad.value = false // <-- Set flag setelah data di-load
+    isInitialLoad.value = false
   } catch (error) {
     console.error('Gagal fetch data:', error)
     isInitialLoad.value = false
@@ -72,9 +64,7 @@ const editor = new Editor({
       heading: false,
       codeBlock: false,
       blockquote: false,
-      HTMLAttributes: {
-        class: 'editor-content',
-      },
+      HTMLAttributes: { class: 'editor-content' },
     }),
   ],
   onUpdate({ editor }) {
@@ -84,8 +74,24 @@ const editor = new Editor({
 
 onBeforeUnmount(() => editor.destroy())
 
+const confirmDelete = () => {
+  showDeleteConfirmation.value = true
+}
+
+const handleDelete = async () => {
+  try {
+    await axios.delete(`http://localhost:3000/tabel/${rowToDelete.value.id}`)
+    data.value.tabel.splice(rowToDelete.value.index, 1)
+    showDeleteConfirmation.value = false
+    showModal.value = false
+  } catch (error) {
+    console.error('Gagal menghapus data:', error)
+    alert('Gagal menghapus data')
+  }
+}
+
 const openAddModal = () => {
-  currentRow.value = { nama: '', dansos: '', kas: '' }
+  currentRow.value = { id: 0, nama: '', dansos: '', kas: '' }
   modalType.value = 'add'
   showModal.value = true
 }
@@ -93,6 +99,7 @@ const openAddModal = () => {
 const openEditModal = (row, index) => {
   currentRow.value = { ...row }
   editingIndex.value = index
+  rowToDelete.value = { id: row.id, index }
   modalType.value = 'edit'
   showModal.value = true
 }
@@ -104,10 +111,6 @@ const saveRow = () => {
     data.value.tabel[editingIndex.value] = { ...currentRow.value }
   }
   showModal.value = false
-}
-
-const deleteRow = index => {
-  data.value.tabel.splice(index, 1)
 }
 </script>
 
@@ -140,9 +143,16 @@ const deleteRow = index => {
           />
         </VCardText>
         <VCardActions>
+          <VBtn
+            v-if="modalType === 'edit'"
+            color="error"
+            @click="confirmDelete"
+          >
+            Hapus
+          </VBtn>
           <VSpacer />
           <VBtn
-            color="error"
+            color="secondary"
             @click="showModal = false"
             >Batal</VBtn
           >
@@ -150,6 +160,30 @@ const deleteRow = index => {
             color="success"
             @click="saveRow"
             >Simpan</VBtn
+          >
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Modal Konfirmasi Hapus -->
+    <VDialog
+      v-model="showDeleteConfirmation"
+      max-width="500"
+    >
+      <VCard class="pa-4">
+        <VCardTitle class="text-h5">Konfirmasi Hapus</VCardTitle>
+        <VCardText>Apakah Anda yakin ingin menghapus data ini?</VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn
+            color="secondary"
+            @click="showDeleteConfirmation = false"
+            >Batal</VBtn
+          >
+          <VBtn
+            color="error"
+            @click="handleDelete"
+            >Hapus</VBtn
           >
         </VCardActions>
       </VCard>
@@ -181,26 +215,6 @@ const deleteRow = index => {
             Tambah
           </VBtn>
         </VCol>
-        <VCol>
-          <VBtn
-            v-if="!deleteMode"
-            block
-            color="error"
-            prepend-icon="ri-delete-bin-line"
-            @click="deleteMode = true"
-          >
-            Hapus
-          </VBtn>
-          <VBtn
-            v-if="deleteMode"
-            block
-            color="info"
-            prepend-icon="ri-edit-line"
-            @click="deleteMode = false"
-          >
-            Edit Data
-          </VBtn>
-        </VCol>
       </VRow>
       <VCard
         v-for="(row, index) in data.tabel"
@@ -214,18 +228,10 @@ const deleteRow = index => {
           <VCol>{{ row.kas }}</VCol>
           <VCol style="max-width: 4rem">
             <VBtn
-              v-if="!deleteMode"
               color="info"
               @click="openEditModal(row, index)"
             >
               <i class="ri-edit-line" />
-            </VBtn>
-            <VBtn
-              v-if="deleteMode"
-              color="error"
-              @click="deleteRow(index)"
-            >
-              <i class="ri-delete-bin-line" />
             </VBtn>
           </VCol>
         </VRow>
