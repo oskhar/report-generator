@@ -352,7 +352,7 @@ const saveRow = async () => {
 
     <VCard
       variant="outlined"
-      class="mt-3 pa-4"
+      class="mt-3 pa-2"
     >
       <VCardTitle class="text-info">Laporan Dana</VCardTitle>
       <VRow class="my-1">
@@ -368,27 +368,27 @@ const saveRow = async () => {
         </VCol>
       </VRow>
       <VCard
+        :key="index"
+        class="pa-2 py-4 mt-3"
+      >
+        <VRow>
+          <VCol class="ml-2"><b>No.</b></VCol>
+          <VCol><b>Nama</b></VCol>
+          <VCol><b>DanSos (Rp)</b></VCol>
+          <VCol><b>Kas (Rp)</b></VCol>
+        </VRow>
+      </VCard>
+      <VCard
+        @click="openEditModal(row, index)"
         v-for="(row, index) in data.tabel"
         :key="index"
-        class="pa-2 mt-3"
+        class="pa-2 py-4 mt-3"
       >
-        <VRow style="display: grid; grid-template-columns: auto 1fr 1fr 1fr auto; align-items: center">
-          <VCol class="text-left">{{ index + 1 }}.</VCol>
-          <VCol
-            class="text-left"
-            style="overflow-wrap: break-word"
-            >{{ row.nama }}</VCol
-          >
-          <VCol class="text-left">{{ formatCurrency(row.dansos) }}</VCol>
-          <VCol class="text-left">{{ formatCurrency(row.kas) }}</VCol>
-          <VCol>
-            <VBtn
-              color="info"
-              @click="openEditModal(row, index)"
-            >
-              <i class="ri-edit-line" />
-            </VBtn>
-          </VCol>
+        <VRow>
+          <VCol class="ml-2">{{ index + 1 }}</VCol>
+          <VCol>{{ row.nama }}</VCol>
+          <VCol>{{ formatCurrency(row.dansos) }}</VCol>
+          <VCol>{{ formatCurrency(row.kas) }}</VCol>
         </VRow>
       </VCard>
     </VCard>
