@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const TabelSchema = z.object({
-  id: z.number().default(0),
+  id: z.number().default(1),
   nama: z.string(),
   dansos: z.number(),
   kas: z.number(),

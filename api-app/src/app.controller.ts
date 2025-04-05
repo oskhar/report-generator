@@ -13,15 +13,11 @@ import { AppService } from './app.service';
 import { ZodPipe } from './pipes/zod.pipe';
 import { UpdateDataSchema, UpdateDataDto } from './dto/update-data.dto';
 import { TabelSchema, TabelDto } from './dto/tabel.dto';
-import { PdfService } from './services/pdf';
 import { DataDto, DataSchema } from './dto/data.dto';
 
 @Controller()
 export class AppController {
-  constructor(
-    private readonly appService: AppService,
-    private readonly pdfService: PdfService,
-  ) {}
+  constructor(private readonly appService: AppService) {}
 
   @Get()
   find() {
@@ -48,23 +44,16 @@ export class AppController {
 
   @Delete('tabel/:id')
   deleteTabel(@Param('id') id: string) {
-    this.appService.deleteTabel(+id);
+    return this.appService.deleteTabel(+id);
   }
 
   @Get('pdf')
-  async generatePDF(@Res() res: Response) {
-    const buffer = await this.pdfService.generatePdf(this.appService.data);
-
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': 'inline; filename=laporan.pdf',
-    });
-
-    return res.send(buffer);
+  generatePDF(@Res() res: Response) {
+    return this.appService.generatePDF(res);
   }
 
   @Post('import')
   import(@Body(new ZodPipe(DataSchema)) data: DataDto) {
-    this.appService.data = data;
+    return this.appService.import(data);
   }
 }

@@ -1,22 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import * as path from 'path';
-import * as fs from 'fs';
 import { DataDto } from './dto/data.dto';
 import { UpdateDataDto } from './dto/update-data.dto';
 import { TabelDto } from './dto/tabel.dto';
+import { Response } from 'express';
+import { PdfService } from './services/pdf';
 
 @Injectable()
 export class AppService {
-  public data: DataDto = {
+  private data: DataDto = {
     judul: '',
     tabel: [],
     keterangan: '',
   };
 
-  constructor() {
-    const filePath = path.join(__dirname, 'inject-data.json');
-    const raw = fs.readFileSync(filePath, 'utf-8');
-    this.data = JSON.parse(raw) as DataDto;
+  constructor(private readonly pdfService: PdfService) {
+    // const filePath = path.join(__dirname, 'inject-data.json');
+    // const raw = fs.readFileSync(filePath, 'utf-8');
+    // this.data = JSON.parse(raw) as DataDto;
   }
 
   find() {
@@ -29,7 +29,11 @@ export class AppService {
   }
 
   createTabel(tabel: TabelDto) {
-    tabel.id = this.data['tabel'][this.data['tabel'].length - 1]['id'] + 1;
+    tabel.id = 1;
+
+    const lastIdTabel = this.data['tabel'][this.data['tabel'].length - 1];
+    if (lastIdTabel) tabel.id = lastIdTabel.id + 1;
+
     this.data['tabel'] = [...this.data['tabel'], tabel];
   }
 
@@ -41,5 +45,22 @@ export class AppService {
 
   deleteTabel(id: number) {
     this.data['tabel'] = this.data['tabel'].filter((row) => row.id != id);
+  }
+
+  async generatePDF(res: Response) {
+    const buffer = await this.pdfService.generatePdf(this.data);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'inline; filename=laporan.pdf',
+    });
+
+    return res.send(buffer);
+  }
+
+  import(data: DataDto) {
+    this.data['judul'] = data.judul;
+    this.data['keterangan'] = data.keterangan;
+    this.data['tabel'] = [...this.data['tabel'], ...data.tabel];
   }
 }
