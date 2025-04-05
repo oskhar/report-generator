@@ -20,6 +20,7 @@
     "@vueuse/core": "^10.11.1",
     "@vueuse/math": "^10.11.1",
     "apexcharts": "^3.54.1",
+    "axios": "^1.8.4",
     "pinia": "^2.3.0",
     "prismjs": "^1.29.0",
     "roboto-fontface": "^0.10.0",

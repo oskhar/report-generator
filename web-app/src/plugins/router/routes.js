@@ -43,8 +43,8 @@ export const routes = [
         component: () => import('@/pages/login.vue'),
       },
       {
-        path: 'register',
-        component: () => import('@/pages/register.vue'),
+        path: 'report',
+        component: () => import('@/pages/report.vue'),
       },
       {
         path: '/:pathMatch(.*)*',
