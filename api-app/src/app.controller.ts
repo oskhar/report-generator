@@ -14,6 +14,7 @@ import { ZodPipe } from './pipes/zod.pipe';
 import { UpdateDataSchema, UpdateDataDto } from './dto/update-data.dto';
 import { TabelSchema, TabelDto } from './dto/tabel.dto';
 import { PdfService } from './services/pdf';
+import { DataDto, DataSchema } from './dto/data.dto';
 
 @Controller()
 export class AppController {
@@ -60,5 +61,10 @@ export class AppController {
     });
 
     return res.send(buffer);
+  }
+
+  @Post('import')
+  import(@Body(new ZodPipe(DataSchema)) data: DataDto) {
+    this.appService.data = data;
   }
 }
