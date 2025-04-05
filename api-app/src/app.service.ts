@@ -29,10 +29,10 @@ export class AppService {
   }
 
   createTabel(tabel: TabelDto) {
-    tabel.id = 1;
+    tabel['id'] = 1;
 
     const lastIdTabel = this.data['tabel'][this.data['tabel'].length - 1];
-    if (lastIdTabel) tabel.id = lastIdTabel.id + 1;
+    if (lastIdTabel) tabel['id'] = lastIdTabel.id + 1;
 
     this.data['tabel'] = [...this.data['tabel'], tabel];
   }

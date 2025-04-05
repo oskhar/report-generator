@@ -3,6 +3,7 @@ import { ref, onBeforeUnmount, onMounted, watch } from 'vue'
 import { Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import axios from 'axios'
+import Swal from 'sweetalert2'
 import { VCardTitle } from 'vuetify/components/VCard'
 
 const data = ref({
@@ -18,36 +19,77 @@ const modalType = ref('add')
 const currentRow = ref({ id: 0, nama: '', dansos: '', kas: '' })
 const editingIndex = ref(-1)
 const rowToDelete = ref({ id: null, index: -1 })
-const fileInput = ref(null) // Tambahkan ref untuk input file
+const fileInput = ref(null)
+
+// Fungsi untuk memformat angka ke format mata uang Indonesia
+const formatCurrency = value => {
+  if (value === null || value === undefined) return '0'
+  const number = Number(value)
+  return isNaN(number) ? '0' : number.toLocaleString('id-ID')
+}
+
+// Fungsi untuk mengubah format mata uang kembali ke angka
+const parseCurrency = formattedValue => {
+  const numberString = formattedValue.replace(/\D/g, '')
+  return numberString ? parseInt(numberString, 10) : 0
+}
+
+// Fungsi untuk menampilkan error Zod
+const showZodErrors = issues => {
+  let errorMessages = []
+  issues.forEach(issue => {
+    errorMessages.push(`<li>${issue.path.join('.')}: ${issue.message}</li>`)
+  })
+  return `<ul class="text-left">${errorMessages.join('')}</ul>`
+}
+
+// Fungsi untuk handle error
+const handleError = (error, defaultMessage = 'Terjadi kesalahan') => {
+  if (error.response && error.response.status === 400 && error.response.data.issues) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Validasi Gagal',
+      html: showZodErrors(error.response.data.issues),
+      confirmButtonColor: '#3085d6',
+    })
+  } else {
+    Swal.fire({
+      icon: 'error',
+      title: 'Oops...',
+      text: error.response?.data?.message || defaultMessage,
+      confirmButtonColor: '#3085d6',
+    })
+  }
+}
 
 const generatePDF = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/pdf', {
-      responseType: 'blob', // Penting untuk menerima data binary
+    const response = await axios.get('https://api-laporan-dana.vercel.app/pdf', {
+      responseType: 'blob',
     })
 
-    // Membuat URL dari blob
     const url = window.URL.createObjectURL(new Blob([response.data]))
-
-    // Membuat elemen anchor untuk download
     const link = document.createElement('a')
     link.href = url
     link.setAttribute('download', 'laporan.pdf')
     document.body.appendChild(link)
-
-    // Trigger download
     link.click()
-
-    // Cleanup
     window.URL.revokeObjectURL(url)
     link.remove()
+
+    Swal.fire({
+      toast: true,
+      icon: 'success',
+      title: 'PDF Berhasil Diunduh',
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 1500,
+    })
   } catch (error) {
-    console.error('Gagal mencetak PDF:', error)
-    alert('Gagal mencetak PDF')
+    handleError(error, 'Gagal mengunduh PDF')
   }
 }
 
-// Fungsi debounce untuk autosave
 const debounce = (func, wait) => {
   let timeout
   return function (...args) {
@@ -59,12 +101,12 @@ const debounce = (func, wait) => {
 
 const saveData = debounce(() => {
   axios
-    .put('http://localhost:3000/', {
+    .put('https://api-laporan-dana.vercel.app/', {
       judul: data.value.judul,
       keterangan: data.value.keterangan,
     })
-    .then(() => console.log('Perubahan berhasil disimpan'))
-    .catch(error => console.error('Gagal menyimpan perubahan:', error))
+    .then(() => {})
+    .catch(error => handleError(error, 'Gagal menyimpan perubahan'))
 }, 500)
 
 watch(
@@ -76,12 +118,12 @@ watch(
 
 onMounted(async () => {
   try {
-    const response = await axios.get('http://localhost:3000')
+    const response = await axios.get('https://api-laporan-dana.vercel.app')
     data.value = response.data.data
     editor.commands.setContent(data.value.keterangan)
     isInitialLoad.value = false
   } catch (error) {
-    console.error('Gagal fetch data:', error)
+    handleError(error, 'Gagal memuat data')
     isInitialLoad.value = false
   }
 })
@@ -102,7 +144,6 @@ const editor = new Editor({
 
 onBeforeUnmount(() => editor.destroy())
 
-// Fungsi untuk handle import JSON
 const handleFileImport = async event => {
   const file = event.target.files[0]
   if (!file) return
@@ -111,19 +152,22 @@ const handleFileImport = async event => {
   reader.onload = async e => {
     try {
       const jsonData = JSON.parse(e.target.result)
+      const response = await axios.post('https://api-laporan-dana.vercel.app/import', jsonData)
 
-      // Kirim data JSON ke endpoint /import
-      const response = await axios.post('http://localhost:3000/import', jsonData)
-
-      // Jika sukses, update data lokal
       if (response.data.status) {
         data.value = jsonData
         editor.commands.setContent(jsonData.keterangan)
-        alert('Import berhasil!')
+        Swal.fire({
+          toast: true,
+          icon: 'success',
+          title: 'Import Berhasil!',
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 1500,
+        })
       }
     } catch (error) {
-      console.error('Error importing file:', error)
-      alert('Gagal mengimpor file. Pastikan format JSON benar.')
+      handleError(error, 'Gagal mengimpor file')
     }
   }
   reader.readAsText(file)
@@ -135,13 +179,23 @@ const confirmDelete = () => {
 
 const handleDelete = async () => {
   try {
-    await axios.delete(`http://localhost:3000/tabel/${rowToDelete.value.id}`)
+    await axios.delete(`https://api-laporan-dana.vercel.app/tabel/${rowToDelete.value.id}`)
     data.value.tabel.splice(rowToDelete.value.index, 1)
     showDeleteConfirmation.value = false
     showModal.value = false
+    Swal.fire({
+      toast: true,
+      icon: 'success',
+      position: 'top-end',
+      title: 'Terhapus!',
+      text: 'Data telah dihapus',
+      showConfirmButton: false,
+      timer: 1500,
+    })
   } catch (error) {
-    console.error('Gagal menghapus data:', error)
-    alert('Gagal menghapus data')
+    showDeleteConfirmation.value = false
+    showModal.value = false
+    handleError(error, 'Gagal menghapus data')
   }
 }
 
@@ -162,24 +216,40 @@ const openEditModal = (row, index) => {
 const saveRow = async () => {
   try {
     if (modalType.value === 'add') {
-      const response = await axios.post('http://localhost:3000/tabel/', {
+      const response = await axios.post('https://api-laporan-dana.vercel.app/tabel/', {
         nama: currentRow.value.nama,
         dansos: parseInt(currentRow.value.dansos),
         kas: parseInt(currentRow.value.kas),
       })
-      if (response) data.value.tabel.push({ ...currentRow.value })
+      data.value.tabel.push({ ...currentRow.value })
+      Swal.fire({
+        toast: true,
+        icon: 'success',
+        position: 'top-end',
+        title: 'Data tersimpan!',
+        showConfirmButton: false,
+        timer: 1500,
+      })
     } else {
-      const response = await axios.put(`http://localhost:3000/tabel/${currentRow.value.id}`, {
+      await axios.put(`https://api-laporan-dana.vercel.app/tabel/${currentRow.value.id}`, {
         nama: currentRow.value.nama,
         dansos: parseInt(currentRow.value.dansos),
         kas: parseInt(currentRow.value.kas),
       })
-      if (response) data.value.tabel[editingIndex.value] = { ...currentRow.value }
+      data.value.tabel[editingIndex.value] = { ...currentRow.value }
+      Swal.fire({
+        toast: true,
+        icon: 'success',
+        position: 'top-end',
+        title: 'Perubahan disimpan!',
+        showConfirmButton: false,
+        timer: 1500,
+      })
     }
+    showModal.value = false
   } catch (error) {
-    console.log(error)
+    handleError(error, 'Gagal menyimpan data')
   }
-  showModal.value = false
 }
 </script>
 
@@ -201,33 +271,44 @@ const saveRow = async () => {
             class="mt-5"
           />
           <VTextField
-            v-model="currentRow.dansos"
+            :model-value="formatCurrency(currentRow.dansos)"
+            @update:model-value="newValue => (currentRow.dansos = parseCurrency(newValue))"
             label="Dansos"
             class="mt-4"
           />
+
           <VTextField
-            v-model="currentRow.kas"
+            :model-value="formatCurrency(currentRow.kas)"
+            @update:model-value="newValue => (currentRow.kas = parseCurrency(newValue))"
             label="Kas"
             class="mt-4"
           />
         </VCardText>
         <VCardActions>
           <VBtn
+            class="px-5"
+            variant="elevated"
             v-if="modalType === 'edit'"
             color="error"
             @click="confirmDelete"
+            prepend-icon="ri-delete-bin-line"
           >
             Hapus
           </VBtn>
           <VSpacer />
           <VBtn
+            class="px-5"
+            variant="outlined"
             color="secondary"
             @click="showModal = false"
             >Batal</VBtn
           >
           <VBtn
+            class="px-5"
+            variant="elevated"
             color="success"
             @click="saveRow"
+            prepend-icon="ri-save-line"
             >Simpan</VBtn
           >
         </VCardActions>
@@ -246,11 +327,13 @@ const saveRow = async () => {
           <VSpacer />
           <VBtn
             color="secondary"
+            class="px-5"
             @click="showDeleteConfirmation = false"
             >Batal</VBtn
           >
           <VBtn
             color="error"
+            class="px-5"
             @click="handleDelete"
             >Hapus</VBtn
           >
@@ -288,13 +371,13 @@ const saveRow = async () => {
       <VCard
         v-for="(row, index) in data.tabel"
         :key="index"
-        class="pa-2 mt-1"
+        class="pa-2 mt-3"
       >
         <VRow>
           <VCol class="ml-2">{{ index + 1 }}</VCol>
           <VCol>{{ row.nama }}</VCol>
-          <VCol>{{ row.dansos }}</VCol>
-          <VCol>{{ row.kas }}</VCol>
+          <VCol>{{ formatCurrency(row.dansos) }}</VCol>
+          <VCol>{{ formatCurrency(row.kas) }}</VCol>
           <VCol style="max-width: 4rem">
             <VBtn
               color="info"

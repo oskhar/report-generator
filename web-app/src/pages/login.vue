@@ -85,7 +85,7 @@ const isPasswordVisible = ref(false)
                 class="text-primary ms-2"
                 href="https://api.whatsapp.com/send?phone=6281386380481&text=Help! Laporan kelupaan Password"
               >
-                Hubungi Developer
+                Hubungi Oskhar
               </RouterLink>
             </VCol>
           </VRow>
