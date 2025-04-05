@@ -4,6 +4,7 @@ import { Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import axios from 'axios'
 import { VCardTitle } from 'vuetify/components/VCard'
+import { tr } from 'vuetify/locale'
 
 const data = ref({
   judul: '',
@@ -104,11 +105,25 @@ const openEditModal = (row, index) => {
   showModal.value = true
 }
 
-const saveRow = () => {
-  if (modalType.value === 'add') {
-    data.value.tabel.push({ ...currentRow.value })
-  } else {
-    data.value.tabel[editingIndex.value] = { ...currentRow.value }
+const saveRow = async () => {
+  try {
+    if (modalType.value === 'add') {
+      const response = await axios.post('http://localhost:3000/tabel/', {
+        nama: currentRow.value.nama,
+        dansos: parseInt(currentRow.value.dansos),
+        kas: parseInt(currentRow.value.kas),
+      })
+      if (response) data.value.tabel.push({ ...currentRow.value })
+    } else {
+      const response = await axios.put(`http://localhost:3000/tabel/${currentRow.value.id}`, {
+        nama: currentRow.value.nama,
+        dansos: parseInt(currentRow.value.dansos),
+        kas: parseInt(currentRow.value.kas),
+      })
+      if (response) data.value.tabel[editingIndex.value] = { ...currentRow.value }
+    }
+  } catch (error) {
+    console.log(error)
   }
   showModal.value = false
 }
@@ -279,7 +294,6 @@ const saveRow = () => {
     >
       Cetak PDF
     </VBtn>
-    <div class="pa-16 my-16"></div>
   </VContainer>
 </template>
 
@@ -288,7 +302,7 @@ const saveRow = () => {
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 10px;
-  min-height: 12rem;
+  min-height: 8rem;
   font-family: sans-serif;
   font-size: 16px;
 }
