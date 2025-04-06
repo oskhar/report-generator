@@ -42,24 +42,30 @@ export class PdfService {
     const pageHeight = doc.page.height;
     const rowHeight = 25;
     const pageWidth = doc.page.width;
-    const columnRatios = [0.05, 0.5, 0.25, 0.25];
-    const columnWidths = columnRatios.map((ratio) => pageWidth * ratio);
-    const headers = ['ID', 'Nama', 'Dansos', 'Kas'];
 
+    // 1. KONFIGURASI UTAMA (Sesuaikan nilai ini saja)
+    const TABLE_WIDTH_PERCENTAGE = 0.8; // 0-1 (80% dari lebar halaman)
+    const COLUMN_RATIOS = [0.05, 0.5, 0.25, 0.25]; // Pastikan total = 1
+
+    // 2. Hitung dimensi tabel
+    const margin = 30;
+    const availableWidth = pageWidth - 2 * margin;
+    const totalTableWidth = availableWidth * TABLE_WIDTH_PERCENTAGE;
+    const leftMargin = margin + (availableWidth - totalTableWidth) / 2;
+    const columnWidths = COLUMN_RATIOS.map((ratio) => totalTableWidth * ratio);
+
+    const headers = ['ID', 'Nama', 'Dansos', 'Kas'];
     let currentY = initialY;
     let rowCount = 0;
     let currentPageStartY = initialY;
 
-    // Hitung posisi garis vertikal untuk setiap kolom
-    const leftMargin = 30;
-    const rightMargin = pageWidth - 30;
+    // 3. Hitung posisi garis vertikal
     const columnPositions = [leftMargin];
-    let cumulativeWidth = 0;
-    for (const width of columnWidths) {
-      cumulativeWidth += width;
-      columnPositions.push(leftMargin + cumulativeWidth);
-    }
-    columnPositions.push(rightMargin);
+    columnWidths.reduce((acc, width) => {
+      const pos = acc + width;
+      columnPositions.push(leftMargin + pos);
+      return pos;
+    }, 0);
 
     // Fungsi untuk menggambar garis vertikal
     const drawVerticalLines = () => {
@@ -69,43 +75,48 @@ export class PdfService {
       });
     };
 
-    // Fungsi untuk menambahkan header
+    // Fungsi header dengan alignment center
     const addHeader = () => {
-      const startY = currentY; // Simpan posisi Y awal sebelum menambahkan header
+      currentPageStartY = currentY;
       doc.font('Helvetica-Bold');
+
       columnWidths.forEach((width, i) => {
-        const x = 30 + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
-        doc.text(headers[i], x, currentY, { width });
+        doc.text(
+          headers[i],
+          leftMargin + columnWidths.slice(0, i).reduce((a, b) => a + b, 0),
+          currentY,
+          {
+            width: columnWidths[i],
+            align: 'center',
+          },
+        );
       });
+
       currentY += rowHeight;
       doc
-        .moveTo(30, currentY)
-        .lineTo(pageWidth - 30, currentY)
+        .moveTo(leftMargin, currentY)
+        .lineTo(leftMargin + totalTableWidth, currentY)
         .stroke();
       currentY += 10;
-      currentPageStartY = startY; // Update posisi awal halaman
     };
 
-    // Fungsi untuk menambahkan baris
-    const addRow = (item: DataDto['tabel'][0], index: number) => {
-      // Cek jika perlu page break
+    // Fungsi baris dengan alignment center
+    const addRow = (item: DataDto['tabel'][0]) => {
       if (currentY + rowHeight > pageHeight - 50) {
-        drawVerticalLines(); // Gambar garis untuk halaman saat ini
+        drawVerticalLines();
         doc.addPage();
         currentY = doc.page.margins.top;
-        addHeader(); // Tambahkan header di halaman baru
+        addHeader();
         rowCount = 0;
       }
 
-      // Warna baris alternatif
       if (rowCount % 2 === 0) {
         doc
-          .rect(30, currentY - 5, 500, rowHeight)
+          .rect(leftMargin, currentY - 5, totalTableWidth, rowHeight)
           .fill('#f8fafc')
           .fillColor('black');
       }
 
-      // Isi konten sel
       const values = [
         item.id.toString(),
         item.nama,
@@ -114,11 +125,18 @@ export class PdfService {
       ];
 
       values.forEach((value, i) => {
-        const x = 30 + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
-        doc.font('Helvetica').fontSize(10).text(value, x, currentY, {
-          width: columnWidths[i],
-          align: 'left',
-        });
+        doc
+          .font('Helvetica')
+          .fontSize(10)
+          .text(
+            value,
+            leftMargin + columnWidths.slice(0, i).reduce((a, b) => a + b, 0),
+            currentY,
+            {
+              width: columnWidths[i],
+              align: 'center',
+            },
+          );
       });
 
       currentY += rowHeight;
@@ -128,14 +146,11 @@ export class PdfService {
     // Mulai membuat tabel
     doc.font('Helvetica-Bold').fontSize(10);
     addHeader();
-    items.forEach((item, index) => addRow(item, index));
+    items.forEach((item) => addRow(item));
 
-    // Gambar garis vertikal untuk halaman terakhir
     drawVerticalLines();
-
     doc.y = currentY + 10;
   }
-
   private renderHtmlContent(doc: typeof PDFDocument, html: string) {
     let currentText = '';
     const styles = {
