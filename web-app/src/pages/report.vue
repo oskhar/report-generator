@@ -401,16 +401,40 @@ const saveRow = async () => {
             Tambah
           </VBtn>
         </VCol>
+        <VCol>
+          <p style="font-weight: bold">
+            Jumlah DANSOS:
+            <b class="text-info"
+              >Rp
+              {{
+                formatCurrency(data.tabel.map(row => row.dansos).reduce((previous, current) => previous + current, 0))
+              }}.-</b
+            >
+          </p>
+          <p style="font-weight: bold">
+            Jumlah Kas:
+            <b class="text-info"
+              >Rp
+              {{
+                formatCurrency(data.tabel.map(row => row.kas).reduce((previous, current) => previous + current, 0))
+              }}.-</b
+            >
+          </p>
+        </VCol>
       </VRow>
       <VCard
         :key="index"
         class="pa-2 py-4 mt-3"
       >
         <VRow>
-          <VCol class="ml-2"><b>No.</b></VCol>
-          <VCol><b>Nama</b></VCol>
-          <VCol><b>DanSos (Rp)</b></VCol>
-          <VCol><b>Kas (Rp)</b></VCol>
+          <VCol
+            class="ml-2"
+            style="max-width: 4rem"
+            ><b>No.</b></VCol
+          >
+          <VCol style="border-left: 1px solid black"><b>Nama</b></VCol>
+          <VCol style="border-left: 1px solid black"><b>DanSos (Rp)</b></VCol>
+          <VCol style="border-left: 1px solid black"><b>Kas (Rp)</b></VCol>
         </VRow>
       </VCard>
       <VCard
@@ -420,10 +444,14 @@ const saveRow = async () => {
         class="pa-2 py-4 mt-3"
       >
         <VRow>
-          <VCol class="ml-2">{{ index + 1 }}</VCol>
-          <VCol>{{ row.nama }}</VCol>
-          <VCol>{{ formatCurrency(row.dansos) }}</VCol>
-          <VCol>{{ formatCurrency(row.kas) }}</VCol>
+          <VCol
+            class="ml-2"
+            style="max-width: 4rem"
+            >{{ index + 1 }}</VCol
+          >
+          <VCol style="border-left: 1px solid black">{{ row.nama }}</VCol>
+          <VCol style="border-left: 1px solid black">{{ formatCurrency(row.dansos) }}</VCol>
+          <VCol style="border-left: 1px solid black">{{ formatCurrency(row.kas) }}</VCol>
         </VRow>
       </VCard>
     </VCard>

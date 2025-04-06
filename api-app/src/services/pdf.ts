@@ -42,15 +42,36 @@ export class PdfService {
     const pageHeight = doc.page.height;
     const rowHeight = 25;
     const pageWidth = doc.page.width;
-    const columnRatios = [0.05, 0.5, 0.25, 0.25]; // Total harus 1 (100%)
+    const columnRatios = [0.05, 0.5, 0.25, 0.25];
     const columnWidths = columnRatios.map((ratio) => pageWidth * ratio);
     const headers = ['ID', 'Nama', 'Dansos', 'Kas'];
 
     let currentY = initialY;
     let rowCount = 0;
+    let currentPageStartY = initialY;
+
+    // Hitung posisi garis vertikal untuk setiap kolom
+    const leftMargin = 30;
+    const rightMargin = pageWidth - 30;
+    const columnPositions = [leftMargin];
+    let cumulativeWidth = 0;
+    for (const width of columnWidths) {
+      cumulativeWidth += width;
+      columnPositions.push(leftMargin + cumulativeWidth);
+    }
+    columnPositions.push(rightMargin);
+
+    // Fungsi untuk menggambar garis vertikal
+    const drawVerticalLines = () => {
+      doc.strokeColor('black');
+      columnPositions.forEach((x) => {
+        doc.moveTo(x, currentPageStartY).lineTo(x, currentY).stroke();
+      });
+    };
 
     // Fungsi untuk menambahkan header
     const addHeader = () => {
+      const startY = currentY; // Simpan posisi Y awal sebelum menambahkan header
       doc.font('Helvetica-Bold');
       columnWidths.forEach((width, i) => {
         const x = 30 + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
@@ -62,19 +83,21 @@ export class PdfService {
         .lineTo(pageWidth - 30, currentY)
         .stroke();
       currentY += 10;
+      currentPageStartY = startY; // Update posisi awal halaman
     };
 
     // Fungsi untuk menambahkan baris
     const addRow = (item: DataDto['tabel'][0], index: number) => {
-      // Cek kebutuhan page break
+      // Cek jika perlu page break
       if (currentY + rowHeight > pageHeight - 50) {
+        drawVerticalLines(); // Gambar garis untuk halaman saat ini
         doc.addPage();
         currentY = doc.page.margins.top;
-        addHeader();
+        addHeader(); // Tambahkan header di halaman baru
         rowCount = 0;
       }
 
-      // Alternate row color
+      // Warna baris alternatif
       if (rowCount % 2 === 0) {
         doc
           .rect(30, currentY - 5, 500, rowHeight)
@@ -82,7 +105,7 @@ export class PdfService {
           .fillColor('black');
       }
 
-      // Konten sel
+      // Isi konten sel
       const values = [
         item.id.toString(),
         item.nama,
@@ -102,10 +125,14 @@ export class PdfService {
       rowCount++;
     };
 
+    // Mulai membuat tabel
     doc.font('Helvetica-Bold').fontSize(10);
-    // Mulai generate tabel
     addHeader();
     items.forEach((item, index) => addRow(item, index));
+
+    // Gambar garis vertikal untuk halaman terakhir
+    drawVerticalLines();
+
     doc.y = currentY + 10;
   }
 
