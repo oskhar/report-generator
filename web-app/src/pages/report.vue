@@ -493,7 +493,7 @@ const saveRow = async () => {
     <div class="d-flex gap-3 mt-3 justify-end">
       <!-- Tombol Import JSON -->
       <VBtn
-        color="success"
+        color="secondary"
         prepend-icon="ri-upload-2-fill"
         @click="fileInput.click()"
       >
