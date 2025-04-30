@@ -1,7 +1,18 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { DataEntity } from './data.entity';
 
 @Entity('tabel')
 export class TabelEntity {
+  constructor(data: Partial<TabelEntity>) {
+    Object.assign(this, data);
+  }
+
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   id: number;
 
@@ -13,4 +24,8 @@ export class TabelEntity {
 
   @Column()
   kas: number;
+
+  @ManyToOne(() => DataEntity, (data) => data.id)
+  @JoinColumn({ name: 'data_id' })
+  data: DataEntity;
 }

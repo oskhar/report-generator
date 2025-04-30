@@ -9,6 +9,10 @@ import {
 
 @Entity('data')
 export class DataEntity {
+  constructor(data: Partial<DataEntity>) {
+    Object.assign(this, data);
+  }
+
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   id: number;
 
@@ -19,6 +23,5 @@ export class DataEntity {
   keterangan: string;
 
   @OneToMany(() => TabelEntity, (tabel) => tabel.id)
-  @JoinColumn({ name: 'tabel_id' })
   tabel: TabelEntity[];
 }
