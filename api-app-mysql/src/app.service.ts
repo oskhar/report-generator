@@ -4,6 +4,10 @@ import { UpdateDataDto } from './dto/update-data.dto';
 import { TabelDto } from './dto/tabel.dto';
 import { Response } from 'express';
 import { PdfService } from './services/pdf';
+import { DataEntity } from 'src/entities/data.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { TabelEntity } from 'src/entities/tabel.entity';
 
 @Injectable()
 export class AppService {
@@ -13,14 +17,23 @@ export class AppService {
     keterangan: '',
   };
 
-  constructor(private readonly pdfService: PdfService) {
+  constructor(
+    @InjectRepository(DataEntity)
+    private readonly dataRepository: Repository<DataEntity>,
+    @InjectRepository(TabelEntity)
+    private readonly tabelRepository: Repository<TabelEntity>,
+    private readonly pdfService: PdfService,
+  ) {
     // const filePath = path.join(__dirname, 'inject-data.json');
     // const raw = fs.readFileSync(filePath, 'utf-8');
     // this.data = JSON.parse(raw) as DataDto;
   }
 
-  find() {
-    return this.data;
+  async find() {
+    return await this.dataRepository.findOne({
+      where: { id: 1 },
+      relations: ['tabel'],
+    });
   }
 
   update(updateDataDto: UpdateDataDto) {
@@ -28,13 +41,9 @@ export class AppService {
     this.data['keterangan'] = updateDataDto['keterangan'];
   }
 
-  createTabel(tabel: TabelDto) {
-    tabel['id'] = 1;
-
-    const lastIdTabel = this.data['tabel'][this.data['tabel'].length - 1];
-    if (lastIdTabel) tabel['id'] = lastIdTabel.id + 1;
-
-    this.data['tabel'] = [...this.data['tabel'], tabel];
+  async createTabel(tabel: TabelDto) {
+    const newTabel = new TabelEntity({ data: { id: 1 }, ...tabel });
+    await this.tabelRepository.save(newTabel);
   }
 
   updateTabel(id: number, tabel: TabelDto) {

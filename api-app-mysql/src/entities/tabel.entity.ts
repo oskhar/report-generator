@@ -27,5 +27,5 @@ export class TabelEntity {
 
   @ManyToOne(() => DataEntity, (data) => data.id)
   @JoinColumn({ name: 'data_id' })
-  data: DataEntity;
+  data: Partial<DataEntity>;
 }

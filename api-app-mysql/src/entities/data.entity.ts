@@ -1,11 +1,5 @@
 import { TabelEntity } from 'src/entities/tabel.entity';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 
 @Entity('data')
 export class DataEntity {
@@ -13,7 +7,7 @@ export class DataEntity {
     Object.assign(this, data);
   }
 
-  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  @PrimaryColumn()
   id: number;
 
   @Column()
@@ -22,6 +16,6 @@ export class DataEntity {
   @Column()
   keterangan: string;
 
-  @OneToMany(() => TabelEntity, (tabel) => tabel.id)
+  @OneToMany(() => TabelEntity, (tabel) => tabel.data)
   tabel: TabelEntity[];
 }
